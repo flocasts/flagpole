@@ -18,6 +18,12 @@
             "request": "launch",
             "name": "Example - Browser (Google)",
             "program": "${workspaceFolder}/example/browser/google.js",
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Example - Browser (Scorecard Tests)",
+            "program": "${workspaceFolder}/example/browser/scorecard.js",
         }
     ]
 }
