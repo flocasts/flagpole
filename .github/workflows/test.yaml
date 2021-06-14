@@ -1,0 +1,54 @@
+name: Test
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [12.x, 14.x]
+        flagpoleCommand:
+          - directory: test-base
+            name: test-base
+            command: --build --base=https://jsonplaceholder.typicode.com --all
+          - directory: test-javascript
+            name: test-javascript
+            command: --all
+          - directory: test-multi
+            name: test-single-suite
+            command: -s main --build
+          - directory: test-multi
+            name: test-multi-suite
+            command: -s main,other,smoke --build
+          - directory: test-multi
+            name: test-single-tag
+            command: -t foo --build
+          - directory: test-multi
+            name: test-browser
+            command: -s browser/* --build
+
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: Cache node modules
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-node-modules
+        with:
+          path: ./node_modules
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+      - run: npm install --no-save
+      - run: npm run build --if-present
+      - run: cd ci/tests/${{ matrix.flagpoleCommand.directory }} && node /home/runner/work/flagpole/flagpole/dist/cli/main.js run ${{ matrix.flagpoleCommand.command }}
